@@ -1,25 +1,31 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import control as ctl
 
-# Coeficientes de la función de transferencia
-K = float(input("Ingrese la ganancia del sistema (K): "))
-zeta = float(input("Ingrese el factor de amortiguamiento (zeta): "))
-omega_n = float(input("Ingrese la frecuencia natural no amortiguada (omega_n): "))
+# Solicitar los datos
+K = float(input("Ingrese el coeficiente de ganancia K: "))
+wn = float(input("Ingrese la frecuencia natural wn: "))
+zeta = float(input("Ingrese el coeficiente de amortiguamiento zeta: "))
 
-# Graficar la respuesta en frecuencia
-s = np.linspace(0, 10, 1000)
-H = K / (s*2 + 2 * zeta * omega_n * s + omega_n*2)
-plt.plot(s, np.abs(H))
-plt.title('Respuesta en Frecuencia')
-plt.xlabel('Frecuencia Angular (s)')
-plt.ylabel('|H(s)|')
-plt.grid(True)
-plt.show()
+# Crear la función de transferencia
+num = [K * wn**2]
+den = [1, 2 * zeta * wn, wn**2]
+sys = ctl.TransferFunction(num, den)
 
-# Determinar y mostrar el tipo de sistema
-if zeta < 1:
+# Determinar el tipo de sistema
+damping_ratio = zeta
+if damping_ratio < 1:
     print("El sistema es subamortiguado.")
-elif zeta == 1:
+elif damping_ratio == 1:
     print("El sistema es críticamente amortiguado.")
 else:
     print("El sistema es sobreamortiguado.")
+    
+# Graficar la respuesta al escalón unitario
+t, y = ctl.step_response(sys)
+plt.plot(t, y)
+plt.title('Respuesta al escalón unitario')
+plt.xlabel('Tiempo (s)')
+plt.ylabel('Amplitud')
+plt.grid(True)
+plt.show()

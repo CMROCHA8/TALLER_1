@@ -1,32 +1,23 @@
 import cv2
-import numpy as np
 
-# Cargar las imágenes de los logos
-image_chevrolet = cv2.imread('chevrolet.png', 0)
-image_hyundai = cv2.imread('Hiunday.png', 0)
+# Cargar la imagen original
+imagen_original = cv2.imread('logo2.jpg')
+imagen_original = cv2.resize(imagen_original, None, fx=0.5, fy=0.5)  # Redimensionar a la mitad
 
-# Función para encontrar contornos en una imagen
-def find_contours(image):
-    # Aplicar umbralización adaptativa para binarizar la imagen
-    thresh = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+gris = cv2.cvtColor(imagen_original, cv2.COLOR_BGR2GRAY)    # Convertir a escala de grises
+blanco_negro = cv2.adaptiveThreshold(gris, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 4)  # Aplicar umbral adaptativo
+blanco_negro = cv2.medianBlur(blanco_negro, 5)  # Aplicar filtro de suavizado para eliminar el ruido
+contornos, _ = cv2.findContours(blanco_negro, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # Encontrar contornos en la imagen en blanco y negro
 
-    # Encontrar contornos en la imagen binarizada
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+# Dibujar los contornos en la imagen original
+imagen_contornos = imagen_original.copy()
+cv2.drawContours(imagen_contornos, contornos, -1, (0, 255, 0), 2)
 
-    # Dibujar contornos en la imagen original
-    image_contours = cv2.drawContours(image, contours, -1, (0), 3)
+# Crear un mosaico con todas las imágenes
+mosaico = cv2.hconcat([imagen_original, imagen_contornos])
+print(mosaico)
 
-    return image_contours, contours
-
-# Encontrar contornos en las imágenes de los logos
-image_chevrolet_contours, contours_chevrolet = find_contours(image_chevrolet)
-image_hyundai_contours, contours_hyundai = find_contours(image_hyundai)
-
-# Obtener las coordenadas X e Y de los contornos
-for contour in contours_chevrolet:
-    x, y, w, h = cv2.boundingRect(contour)
-    print(f'Coordenadas X e Y del logo Chevrolet: ({x}, {y})')
-
-for contour in contours_hyundai:
-    x, y, w, h = cv2.boundingRect(contour)
-    print(f'Coordenadas X e Y del logo Hyundai: ({x}, {y})')
+# Mostrar el mosaico
+cv2.imshow('Mosaico', mosaico)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
